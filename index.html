@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Annotation System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Document Annotation System</h1>
+            <div class="header-actions">
+                <button class="btn">Export</button>
+                <button class="btn">Share</button>
+                <button class="btn primary">Save Document</button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Left Panel - Document Metadata -->
+            <div class="left-panel" id="leftPanel">
+                <div class="resize-handle left" id="leftResizeHandle"></div>
+                <div class="metadata-section">
+                    <h3>Document Properties</h3>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Title:</span> Research Paper on AI Ethics
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Author:</span> Dr. Sarah Johnson
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Date:</span> June 25, 2025
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Version:</span> 2.1
+                    </div>
+                </div>
+                
+                <div class="metadata-section">
+                    <h3>Document Tags</h3>
+                    <div class="annotation-tags">
+                        <span class="tag">AI Ethics</span>
+                        <span class="tag">Machine Learning</span>
+                        <span class="tag">Policy</span>
+                        <span class="tag">Research</span>
+                    </div>
+                </div>
+                
+                <div class="metadata-section">
+                    <h3>Notes</h3>
+                    <div class="metadata-item">
+                        This document explores the ethical implications of artificial intelligence in modern society, focusing on bias, transparency, and accountability.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Editor Container (Main Editor + Annotations Overlay) -->
+            <div class="editor-container" id="editorContainer">
+                <!-- Main Editor -->
+                <div class="main-editor" id="mainEditor">
+                    <h1 class="document-title">Ethical Considerations in Artificial Intelligence</h1>
+                    <div class="document-content">
+                        <p>
+                            The rapid advancement of artificial intelligence has brought unprecedented opportunities and challenges to modern society. As AI systems become increasingly sophisticated and integrated into critical decision-making processes, the ethical implications of their deployment demand careful consideration.
+                        </p>
+                        <p>
+                            One of the most pressing concerns is <span class="annotation-marker">algorithmic bias<span class="annotation-number">1</span></span>, which can perpetuate and amplify existing societal inequalities. Machine learning models trained on historical data often inherit the biases present in that data, leading to discriminatory outcomes in areas such as hiring, lending, and criminal justice.
+                        </p>
+                        <p>
+                            <span class="selected-text">Transparency and explainability represent another crucial ethical dimension. As AI systems grow more complex, understanding how they arrive at specific decisions becomes increasingly challenging.</span> This "black box" problem poses significant risks when AI is used in high-stakes scenarios where accountability is essential.
+                        </p>
+                        <p>
+                            The question of <span class="annotation-marker">accountability and responsibility<span class="annotation-number">2</span></span> in AI systems remains contentious. When an autonomous system makes a harmful decision, determining liability becomes complex. Should responsibility lie with the developers, the organizations deploying the system, or the AI itself?
+                        </p>
+                        <p>
+                            Privacy concerns also feature prominently in AI ethics discussions. The vast amounts of data required to train sophisticated AI models often include personal information, raising questions about consent, data ownership, and the potential for surveillance and manipulation.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Annotations Panel (Overlay) -->
+                <div class="annotations-panel" id="annotationsPanel">
+                    <div class="annotations-panel-header">
+                        <h2 class="annotations-panel-title">Annotations</h2>
+                        <div class="panel-actions">
+                            <button class="pin-btn" id="pinBtn" onclick="togglePin()" title="Pin panel">📌</button>
+                            <button class="close-btn" onclick="toggleAnnotationsPanel()">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="annotation-tabs">
+                        <div class="annotation-tab active">All Annotations</div>
+                        <div class="annotation-tab">Tags</div>
+                        <div class="annotation-tab">Cross-References</div>
+                    </div>
+                    
+                    <div class="annotation-list">
+                        <div class="annotation-item">
+                            <div class="annotation-item-quote">"algorithmic bias"</div>
+                            <div class="annotation-item-content">
+                                This is a critical issue that needs addressing at multiple levels - from data collection to model design. Recent studies show that bias mitigation techniques can reduce discriminatory outcomes by up to 40%.
+                            </div>
+                            <div class="annotation-item-meta">
+                                <span>Page 1</span>
+                                <span>2 hours ago</span>
+                                <div class="annotation-tags">
+                                    <span class="tag">bias</span>
+                                    <span class="tag">fairness</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="annotation-item">
+                            <div class="annotation-item-quote">"accountability and responsibility"</div>
+                            <div class="annotation-item-content">
+                                The legal framework for AI accountability is still evolving. The EU's AI Act represents one of the first comprehensive attempts to establish clear liability chains for AI systems.
+                            </div>
+                            <div class="annotation-item-meta">
+                                <span>Page 1</span>
+                                <span>1 hour ago</span>
+                                <div class="annotation-tags">
+                                    <span class="tag">legal</span>
+                                    <span class="tag">policy</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Annotation Editor -->
+            <div class="annotation-editor" id="annotationEditor">
+                <div class="resize-handle right" id="rightResizeHandle"></div>
+                <div class="annotation-editor-header">
+                    <h3 class="annotation-editor-title">Create Annotation</h3>
+                    <button class="close-btn" onclick="toggleAnnotationEditor()">×</button>
+                </div>
+                
+                <div class="selected-quote">
+                    "Transparency and explainability represent another crucial ethical dimension. As AI systems grow more complex, understanding how they arrive at specific decisions becomes increasingly challenging."
+                </div>
+                
+                <textarea class="annotation-textarea" placeholder="Enter your annotation here...">This highlights the fundamental tension between model complexity and interpretability. As we push for more accurate AI systems, we often sacrifice our ability to understand their decision-making processes.</textarea>
+                
+                <div class="annotation-actions">
+                    <button class="btn" onclick="toggleAnnotationEditor()">Cancel</button>
+                    <button class="btn primary">Save Annotation</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toggle Buttons -->
+        <button class="toggle-left" onclick="toggleLeftPanel()">☰</button>
+        <button class="toggle-annotations" onclick="toggleAnnotationsPanel()">View Annotations (2)</button>
+        
+        <!-- Demo Controls -->
+        <div class="demo-controls">
+            <h4>Demo States</h4>
+            <div class="demo-buttons">
+                <button class="demo-btn active" onclick="showState('default')">Default View</button>
+                <button class="demo-btn" onclick="showState('metadata')">With Metadata</button>
+                <button class="demo-btn" onclick="showState('annotating')">Creating Annotation</button>
+                <button class="demo-btn" onclick="showState('annotations')">Annotation List</button>
+                <button class="demo-btn" onclick="showState('all')">All Panels</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
