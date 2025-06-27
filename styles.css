@@ -80,26 +80,45 @@ body {
     position: relative;
 }
 
-/* Left Panel - Document Metadata */
-.left-panel {
-    width: 300px;
+/* Document Properties Panel (Left Side - Similar to Annotations Panel) */
+.document-properties-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 350px;
     background: white;
     border-right: 1px solid #e0e0e0;
-    padding: 20px;
-    overflow-y: auto;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.1);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 10;
-    min-width: 250px;
-    max-width: 500px;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
 }
 
-.left-panel.visible {
+.document-properties-panel.visible {
     transform: translateX(0);
+}
+
+.properties-panel-header {
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+}
+
+.properties-panel-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.properties-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
 }
 
 .metadata-section {
@@ -134,9 +153,7 @@ body {
     transition: margin-left 0.3s ease, margin-right 0.3s ease;
 }
 
-.editor-container.with-left-panel {
-    margin-left: 300px;
-}
+/* Remove left panel margin since it's now an overlay */
 
 .editor-container.with-annotation-editor {
     margin-right: 400px;

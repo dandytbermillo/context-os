@@ -88,11 +88,17 @@ export default function Home() {
       
       {/* Main Content Area */}
       <div className="main-content">
-        {/* Left Panel - Document Metadata */}
-        <div className={`left-panel ${leftPanelVisible ? 'visible' : ''}`} id="leftPanel">
-          <div className="resize-handle left" id="leftResizeHandle"></div>
+        {/* Document Properties Panel (Left Side) */}
+        <div className={`document-properties-panel ${leftPanelVisible ? 'visible' : ''}`} id="documentPropertiesPanel">
+          <div className="properties-panel-header">
+            <h2 className="properties-panel-title">Document Properties</h2>
+            <div className="panel-actions">
+              <button className="close-btn" onClick={toggleLeftPanel}>×</button>
+            </div>
+          </div>
+          
+          <div className="properties-content">
           <div className="metadata-section">
-            <h3>Document Properties</h3>
             <div className="metadata-item">
               <span className="metadata-label">Title:</span> Research Paper on AI Ethics
             </div>
@@ -123,10 +129,11 @@ export default function Home() {
               This document explores the ethical implications of artificial intelligence in modern society, focusing on bias, transparency, and accountability.
             </div>
           </div>
+          </div>
         </div>
         
         {/* Editor Container (Main Editor + Annotations Overlay) */}
-        <div className={`editor-container ${leftPanelVisible ? 'with-left-panel' : ''} ${annotationEditorVisible ? 'with-annotation-editor' : ''}`} id="editorContainer">
+        <div className={`editor-container ${annotationEditorVisible ? 'with-annotation-editor' : ''}`} id="editorContainer">
           {/* Main Editor */}
           <div className="main-editor" id="mainEditor">
             <h1 className="document-title">Ethical Considerations in Artificial Intelligence</h1>
