@@ -20,10 +20,8 @@ export default function Home() {
   };
 
   const toggleAnnotationEditor = () => {
+    // Simply toggle the editor state, don't affect annotations panel
     setAnnotationEditorVisible(!annotationEditorVisible);
-    if (!isPinned) {
-      setAnnotationsPanelVisible(false);
-    }
   };
 
   const togglePin = () => {
@@ -44,9 +42,7 @@ export default function Home() {
     // Reset all states
     setLeftPanelVisible(false);
     setAnnotationEditorVisible(false);
-    if (!isPinned) {
-      setAnnotationsPanelVisible(false);
-    }
+    setAnnotationsPanelVisible(false);
 
     // Apply specific state
     switch(state) {
@@ -55,9 +51,8 @@ export default function Home() {
         break;
       case 'annotating':
         setAnnotationEditorVisible(true);
-        if (!isPinned) {
-          setAnnotationsPanelVisible(false);
-        }
+        setAnnotationsPanelVisible(false);
+        setIsPinned(false); // Unpin to ensure panels can be hidden
         break;
       case 'annotations':
         setAnnotationsPanelVisible(true);
@@ -78,7 +73,7 @@ export default function Home() {
     <div className="container">
       {/* Header */}
       <div className="header">
-        <h1>Document Annotation System</h1>
+        <h1>15:50:34 MDT</h1>
         <div className="header-actions">
           <button className="btn">Export</button>
           <button className="btn">Share</button>
@@ -154,10 +149,9 @@ export default function Home() {
                 Privacy concerns also feature prominently in AI ethics discussions. The vast amounts of data required to train sophisticated AI models often include personal information, raising questions about consent, data ownership, and the potential for surveillance and manipulation.
               </p>
             </div>
-          </div>
-          
-          {/* Annotations Panel (Overlay) */}
-          <div className={`annotations-panel ${annotationsPanelVisible ? 'visible' : ''} ${annotationEditorVisible ? 'with-editor' : ''} ${isPinned ? 'pinned' : ''}`} id="annotationsPanel">
+            
+            {/* Annotations Panel (Now inside Main Editor) */}
+            <div className={`annotations-panel ${annotationsPanelVisible ? 'visible' : ''} ${annotationsPanelVisible && annotationEditorVisible ? 'with-editor' : ''} ${isPinned ? 'pinned' : ''} ${leftPanelVisible && annotationsPanelVisible && annotationEditorVisible ? 'with-all-panels' : ''}`} id="annotationsPanel">
             <div className="annotations-panel-header">
               <h2 className="annotations-panel-title">Annotations</h2>
               <div className="panel-actions">
@@ -458,10 +452,11 @@ export default function Home() {
               </div>
             </div>
           </div>
+          </div>
         </div>
         
         {/* Annotation Editor */}
-        <div className={`annotation-editor ${annotationEditorVisible ? 'visible' : ''}`} id="annotationEditor">
+        <div className={`annotation-editor ${annotationEditorVisible ? 'visible' : ''} ${leftPanelVisible && annotationsPanelVisible && annotationEditorVisible ? 'with-all-panels' : ''}`} id="annotationEditor">
           <div className="resize-handle right" id="rightResizeHandle"></div>
           <div className="annotation-editor-header">
             <h3 className="annotation-editor-title">Create Annotation</h3>

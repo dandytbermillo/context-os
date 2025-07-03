@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Annotation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #f8f8f8;
+            border-color: #999;
+        }
+        
+        .btn.primary {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .btn.primary:hover {
+            background: #0052a3;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-top: 60px;
+            display: flex;
+            position: relative;
+        }
+        
+        /* Left Panel - Document Metadata */
+        .left-panel {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 10;
+            min-width: 250px;
+            max-width: 500px;
+        }
+        
+        .left-panel.visible {
+            transform: translateX(0);
+        }
+        
+        .metadata-section {
+            margin-bottom: 25px;
+        }
+        
+        .metadata-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metadata-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .metadata-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        /* Main Editor Container */
+        .editor-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            transition: margin-left 0.3s ease, margin-right 0.3s ease;
+        }
+        
+        .editor-container.with-left-panel {
+            margin-left: 300px;
+        }
+        
+        .editor-container.with-annotation-editor {
+            margin-right: 400px;
+        }
+        
+        /* Main Editor */
+        .main-editor {
+            flex: 1;
+            background: white;
+            padding: 40px 60px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .document-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #111;
+        }
+        
+        .document-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        .document-content p {
+            margin-bottom: 20px;
+        }
+        
+        /* Text Selection and Annotation */
+        .selected-text {
+            background: #ffd700;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .annotation-marker {
+            background: #e3f2fd;
+            border-bottom: 2px solid #2196f3;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .annotation-marker:hover {
+            background: #bbdefb;
+        }
+        
+        .annotation-number {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #2196f3;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Annotations List Panel (Overlay on Main Editor) */
+        .annotations-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 350px;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.1);
+            transform: translateX(100%);
+            transition: transform 0.3s ease, right 0.3s ease;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .annotations-panel.visible {
+            transform: translateX(0);
+        }
+        
+        .annotations-panel.with-editor {
+            right: 400px;
+        }
+        
+        .annotations-panel.pinned {
+            background: rgba(255, 255, 255, 0.98);
+        }
+        
+        .annotations-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+        
+        .annotations-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .panel-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .pin-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .pin-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .pin-btn.pinned {
+            color: #2196f3;
+            background: #e3f2fd;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+        
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .annotation-tabs {
+            display: flex;
+            gap: 20px;
+            padding: 0 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+        
+        .annotation-tab {
+            padding: 15px 0;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .annotation-tab.active {
+            color: #2196f3;
+            border-bottom-color: #2196f3;
+        }
+        
+        .annotation-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .annotation-item {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .annotation-item:hover {
+            border-color: #2196f3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .annotation-item-quote {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        .annotation-item-content {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .annotation-item-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .annotation-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        /* Annotation Editor (Right Side) */
+        .annotation-editor {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 400px;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            padding: 20px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 20;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+            min-width: 300px;
+            max-width: 600px;
+        }
+        
+        .annotation-editor.visible {
+            transform: translateX(0);
+        }
+        
+        .annotation-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .annotation-editor-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .selected-quote {
+            background: #f5f5f5;
+            padding: 12px;
+            border-left: 4px solid #2196f3;
+            margin-bottom: 20px;
+            font-style: italic;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .annotation-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .annotation-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        /* Toggle Buttons */
+        .toggle-left {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .toggle-annotations {
+            position: fixed;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-weight: 500;
+        }
+        
+        /* Resize Handles */
+        .resize-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+        }
+        
+        .resize-handle:hover {
+            background: #2196f3;
+        }
+        
+        .resize-handle.left {
+            right: -3px;
+        }
+        
+        .resize-handle.right {
+            left: -3px;
+        }
+        
+        .resizing {
+            user-select: none;
+            cursor: col-resize;
+        }
+        
+        .resizing * {
+            cursor: col-resize !important;
+        }
+        
+        /* Demo Controls */
+        .demo-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 200;
+        }
+        
+        .demo-controls h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .demo-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .demo-btn:hover {
+            background: #f5f5f5;
+        }
+        
+        .demo-btn.active {
+            background: #2196f3;
+            color: white;
+            border-color: #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Document Annotation System</h1>
+            <div class="header-actions">
+                <button class="btn">Export</button>
+                <button class="btn">Share</button>
+                <button class="btn primary">Save Document</button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Left Panel - Document Metadata -->
+            <div class="left-panel" id="leftPanel">
+                <div class="resize-handle left" id="leftResizeHandle"></div>
+                <div class="metadata-section">
+                    <h3>Document Properties</h3>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Title:</span> Research Paper on AI Ethics
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Author:</span> Dr. Sarah Johnson
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Date:</span> June 25, 2025
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Version:</span> 2.1
+                    </div>
+                </div>
+                
+                <div class="metadata-section">
+                    <h3>Document Tags</h3>
+                    <div class="annotation-tags">
+                        <span class="tag">AI Ethics</span>
+                        <span class="tag">Machine Learning</span>
+                        <span class="tag">Policy</span>
+                        <span class="tag">Research</span>
+                    </div>
+                </div>
+                
+                <div class="metadata-section">
+                    <h3>Notes</h3>
+                    <div class="metadata-item">
+                        This document explores the ethical implications of artificial intelligence in modern society, focusing on bias, transparency, and accountability.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Editor Container (Main Editor + Annotations Overlay) -->
+            <div class="editor-container" id="editorContainer">
+                <!-- Main Editor -->
+                <div class="main-editor" id="mainEditor">
+                    <h1 class="document-title">Ethical Considerations in Artificial Intelligence</h1>
+                    <div class="document-content">
+                        <p>
+                            The rapid advancement of artificial intelligence has brought unprecedented opportunities and challenges to modern society. As AI systems become increasingly sophisticated and integrated into critical decision-making processes, the ethical implications of their deployment demand careful consideration.
+                        </p>
+                        <p>
+                            One of the most pressing concerns is <span class="annotation-marker">algorithmic bias<span class="annotation-number">1</span></span>, which can perpetuate and amplify existing societal inequalities. Machine learning models trained on historical data often inherit the biases present in that data, leading to discriminatory outcomes in areas such as hiring, lending, and criminal justice.
+                        </p>
+                        <p>
+                            <span class="selected-text">Transparency and explainability represent another crucial ethical dimension. As AI systems grow more complex, understanding how they arrive at specific decisions becomes increasingly challenging.</span> This "black box" problem poses significant risks when AI is used in high-stakes scenarios where accountability is essential.
+                        </p>
+                        <p>
+                            The question of <span class="annotation-marker">accountability and responsibility<span class="annotation-number">2</span></span> in AI systems remains contentious. When an autonomous system makes a harmful decision, determining liability becomes complex. Should responsibility lie with the developers, the organizations deploying the system, or the AI itself?
+                        </p>
+                        <p>
+                            Privacy concerns also feature prominently in AI ethics discussions. The vast amounts of data required to train sophisticated AI models often include personal information, raising questions about consent, data ownership, and the potential for surveillance and manipulation.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Annotations Panel (Overlay) -->
+                <div class="annotations-panel" id="annotationsPanel">
+                    <div class="annotations-panel-header">
+                        <h2 class="annotations-panel-title">Annotations</h2>
+                        <div class="panel-actions">
+                            <button class="pin-btn" id="pinBtn" onclick="togglePin()" title="Pin panel">📌</button>
+                            <button class="close-btn" onclick="toggleAnnotationsPanel()">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="annotation-tabs">
+                        <div class="annotation-tab active">All Annotations</div>
+                        <div class="annotation-tab">Tags</div>
+                        <div class="annotation-tab">Cross-References</div>
+                    </div>
+                    
+                    <div class="annotation-list">
+                        <div class="annotation-item">
+                            <div class="annotation-item-quote">"algorithmic bias"</div>
+                            <div class="annotation-item-content">
+                                This is a critical issue that needs addressing at multiple levels - from data collection to model design. Recent studies show that bias mitigation techniques can reduce discriminatory outcomes by up to 40%.
+                            </div>
+                            <div class="annotation-item-meta">
+                                <span>Page 1</span>
+                                <span>2 hours ago</span>
+                                <div class="annotation-tags">
+                                    <span class="tag">bias</span>
+                                    <span class="tag">fairness</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="annotation-item">
+                            <div class="annotation-item-quote">"accountability and responsibility"</div>
+                            <div class="annotation-item-content">
+                                The legal framework for AI accountability is still evolving. The EU's AI Act represents one of the first comprehensive attempts to establish clear liability chains for AI systems.
+                            </div>
+                            <div class="annotation-item-meta">
+                                <span>Page 1</span>
+                                <span>1 hour ago</span>
+                                <div class="annotation-tags">
+                                    <span class="tag">legal</span>
+                                    <span class="tag">policy</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Annotation Editor -->
+            <div class="annotation-editor" id="annotationEditor">
+                <div class="resize-handle right" id="rightResizeHandle"></div>
+                <div class="annotation-editor-header">
+                    <h3 class="annotation-editor-title">Create Annotation</h3>
+                    <button class="close-btn" onclick="toggleAnnotationEditor()">×</button>
+                </div>
+                
+                <div class="selected-quote">
+                    "Transparency and explainability represent another crucial ethical dimension. As AI systems grow more complex, understanding how they arrive at specific decisions becomes increasingly challenging."
+                </div>
+                
+                <textarea class="annotation-textarea" placeholder="Enter your annotation here...">This highlights the fundamental tension between model complexity and interpretability. As we push for more accurate AI systems, we often sacrifice our ability to understand their decision-making processes.</textarea>
+                
+                <div class="annotation-actions">
+                    <button class="btn" onclick="toggleAnnotationEditor()">Cancel</button>
+                    <button class="btn primary">Save Annotation</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toggle Buttons -->
+        <button class="toggle-left" onclick="toggleLeftPanel()">☰</button>
+        <button class="toggle-annotations" onclick="toggleAnnotationsPanel()">View Annotations (2)</button>
+        
+        <!-- Demo Controls -->
+        <div class="demo-controls">
+            <h4>Demo States</h4>
+            <div class="demo-buttons">
+                <button class="demo-btn active" onclick="showState('default')">Default View</button>
+                <button class="demo-btn" onclick="showState('metadata')">With Metadata</button>
+                <button class="demo-btn" onclick="showState('annotating')">Creating Annotation</button>
+                <button class="demo-btn" onclick="showState('annotations')">Annotation List</button>
+                <button class="demo-btn" onclick="showState('all')">All Panels</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let isResizing = false;
+        let currentPanel = null;
+        let startX = 0;
+        let startWidth = 0;
+        let isPinned = false;
+        
+        // Initialize resize functionality
+        document.getElementById('leftResizeHandle').addEventListener('mousedown', (e) => initResize(e, 'left'));
+        document.getElementById('rightResizeHandle').addEventListener('mousedown', (e) => initResize(e, 'right'));
+        
+        function initResize(e, panel) {
+            isResizing = true;
+            currentPanel = panel;
+            startX = e.clientX;
+            
+            if (panel === 'left') {
+                startWidth = document.getElementById('leftPanel').offsetWidth;
+            } else {
+                startWidth = document.getElementById('annotationEditor').offsetWidth;
+            }
+            
+            document.body.classList.add('resizing');
+            e.preventDefault();
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            if (currentPanel === 'left') {
+                const panel = document.getElementById('leftPanel');
+                const newWidth = startWidth + (e.clientX - startX);
+                
+                if (newWidth >= 250 && newWidth <= 500) {
+                    panel.style.width = newWidth + 'px';
+                    updateEditorContainerMargin();
+                }
+            } else if (currentPanel === 'right') {
+                const panel = document.getElementById('annotationEditor');
+                const newWidth = startWidth - (e.clientX - startX);
+                
+                if (newWidth >= 300 && newWidth <= 600) {
+                    panel.style.width = newWidth + 'px';
+                    updateEditorContainerMargin();
+                    // Update annotations panel position if visible
+                    updateAnnotationsPanelPosition();
+                }
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                currentPanel = null;
+                document.body.classList.remove('resizing');
+            }
+        });
+        
+        function updateEditorContainerMargin() {
+            const editorContainer = document.getElementById('editorContainer');
+            const leftPanel = document.getElementById('leftPanel');
+            const annotationEditor = document.getElementById('annotationEditor');
+            
+            if (leftPanel.classList.contains('visible')) {
+                editorContainer.style.marginLeft = leftPanel.offsetWidth + 'px';
+            } else {
+                editorContainer.style.marginLeft = '0';
+            }
+            
+            if (annotationEditor.classList.contains('visible')) {
+                editorContainer.style.marginRight = annotationEditor.offsetWidth + 'px';
+            } else {
+                editorContainer.style.marginRight = '0';
+            }
+        }
+        
+        function updateAnnotationsPanelPosition() {
+            const annotationsPanel = document.getElementById('annotationsPanel');
+            const annotationEditor = document.getElementById('annotationEditor');
+            
+            if (annotationEditor.classList.contains('visible') && annotationsPanel.classList.contains('visible')) {
+                annotationsPanel.classList.add('with-editor');
+                annotationsPanel.style.right = annotationEditor.offsetWidth + 'px';
+            } else {
+                annotationsPanel.classList.remove('with-editor');
+                annotationsPanel.style.right = '0';
+            }
+        }
+        
+        function toggleLeftPanel() {
+            const panel = document.getElementById('leftPanel');
+            const container = document.getElementById('editorContainer');
+            panel.classList.toggle('visible');
+            
+            if (panel.classList.contains('visible')) {
+                container.classList.add('with-left-panel');
+                container.style.marginLeft = panel.offsetWidth + 'px';
+            } else {
+                container.classList.remove('with-left-panel');
+                container.style.marginLeft = '0';
+            }
+        }
+        
+        function toggleAnnotationEditor() {
+            const editor = document.getElementById('annotationEditor');
+            const container = document.getElementById('editorContainer');
+            editor.classList.toggle('visible');
+            
+            if (editor.classList.contains('visible')) {
+                container.classList.add('with-annotation-editor');
+                container.style.marginRight = editor.offsetWidth + 'px';
+                // Hide annotations panel when showing editor unless pinned
+                if (!isPinned) {
+                    document.getElementById('annotationsPanel').classList.remove('visible');
+                }
+                updateAnnotationsPanelPosition();
+            } else {
+                container.classList.remove('with-annotation-editor');
+                container.style.marginRight = '0';
+                updateAnnotationsPanelPosition();
+            }
+        }
+        
+        function toggleAnnotationsPanel() {
+            const panel = document.getElementById('annotationsPanel');
+            const wasVisible = panel.classList.contains('visible');
+            
+            if (wasVisible) {
+                // Hide the panel
+                panel.classList.remove('visible');
+                panel.classList.remove('with-editor');
+                panel.style.right = '0';
+            } else {
+                // Show the panel
+                panel.classList.add('visible');
+                updateAnnotationsPanelPosition();
+            }
+        }
+        
+        function togglePin() {
+            isPinned = !isPinned;
+            const pinBtn = document.getElementById('pinBtn');
+            const panel = document.getElementById('annotationsPanel');
+            
+            if (isPinned) {
+                pinBtn.classList.add('pinned');
+                panel.classList.add('pinned');
+                pinBtn.title = 'Unpin panel';
+            } else {
+                pinBtn.classList.remove('pinned');
+                panel.classList.remove('pinned');
+                pinBtn.title = 'Pin panel';
+            }
+        }
+        
+        function showState(state) {
+            // Save current pin state
+            const currentPinState = isPinned;
+            
+            // Reset all states
+            document.getElementById('leftPanel').classList.remove('visible');
+            document.getElementById('editorContainer').classList.remove('with-left-panel', 'with-annotation-editor');
+            document.getElementById('editorContainer').style.marginLeft = '0';
+            document.getElementById('editorContainer').style.marginRight = '0';
+            document.getElementById('annotationEditor').classList.remove('visible');
+            
+            // Only hide annotations panel if not pinned
+            if (!currentPinState) {
+                document.getElementById('annotationsPanel').classList.remove('visible');
+                document.getElementById('annotationsPanel').classList.remove('with-editor');
+                document.getElementById('annotationsPanel').style.right = '0';
+            }
+            
+            // Update demo button states
+            document.querySelectorAll('.demo-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Apply specific state
+            switch(state) {
+                case 'default':
+                    // Just reset, done above
+                    break;
+                case 'metadata':
+                    toggleLeftPanel();
+                    break;
+                case 'annotating':
+                    // Show annotation editor, hide annotations panel unless pinned
+                    const editor = document.getElementById('annotationEditor');
+                    const container = document.getElementById('editorContainer');
+                    editor.classList.add('visible');
+                    container.classList.add('with-annotation-editor');
+                    container.style.marginRight = editor.offsetWidth + 'px';
+                    
+                    if (!currentPinState) {
+                        document.getElementById('annotationsPanel').classList.remove('visible');
+                        document.getElementById('annotationsPanel').classList.remove('with-editor');
+                        document.getElementById('annotationsPanel').style.right = '0';
+                    } else {
+                        updateAnnotationsPanelPosition();
+                    }
+                    break;
+                case 'annotations':
+                    // Show only annotations panel
+                    document.getElementById('annotationsPanel').classList.add('visible');
+                    updateAnnotationsPanelPosition();
+                    break;
+                case 'all':
+                    // Show all panels
+                    toggleLeftPanel();
+                    
+                    // Show annotation editor
+                    const editorAll = document.getElementById('annotationEditor');
+                    const containerAll = document.getElementById('editorContainer');
+                    editorAll.classList.add('visible');
+                    containerAll.classList.add('with-annotation-editor');
+                    containerAll.style.marginRight = editorAll.offsetWidth + 'px';
+                    
+                    // Show annotations panel
+                    document.getElementById('annotationsPanel').classList.add('visible');
+                    updateAnnotationsPanelPosition();
+                    break;
+            }
+        }
+        
+        // Close annotations panel when clicking outside if not pinned
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('annotationsPanel');
+            const toggleBtn = document.querySelector('.toggle-annotations');
+            const demoButtons = document.querySelector('.demo-controls');
+            
+            if (!isPinned && 
+                panel.classList.contains('visible') && 
+                !panel.contains(e.target) && 
+                !toggleBtn.contains(e.target) &&
+                !demoButtons.contains(e.target)) {
+                toggleAnnotationsPanel();
+            }
+        });
+    </script>
+</body>
+</html>

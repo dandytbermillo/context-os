@@ -49,3 +49,22 @@ export interface TextSelection {
   end: number;
   rect?: DOMRect;
 }
+
+export interface AnnotationFilter {
+  type: 'all' | AnnotationType;
+  label: string;
+  count: number;
+  icon?: string;
+}
+
+export interface AnnotationStats {
+  total: number;
+  byType: Record<AnnotationType, number>;
+  comment: number;
+  highlight: number;
+  question: number;
+  citation: number;
+  note: number;
+}
+
+export type SortOption = 'recent' | 'type' | 'priority' | 'status';
