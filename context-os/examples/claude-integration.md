@@ -1,4 +1,4 @@
-# Claude Integration Examples
+# Claude Integration Example
 
 This document shows practical examples of using Context-OS with Claude.
 
